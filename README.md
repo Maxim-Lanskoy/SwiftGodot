@@ -1,120 +1,34 @@
-<div align="center">
-  <h1>SwiftGodot</h1>
-  <img src="Resources/SwiftGodotLogo.svg" width="200">
-</div>
-<br>
 
-[![SwiftPM compatible](https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat)](https://swift.org/package-manager)
+<img src="Resources/SwiftGodotLogo.svg" width="20"> [![SwiftPM compatible](https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat)](https://swift.org/package-manager)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-333333.svg?style=flat)
 [![Swift Package Index](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmigueldeicaza%2FSwiftGodot%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/migueldeicaza/SwiftGodot)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg?maxAge=2592000)](https://raw.githubusercontent.com/migueldeicaza/SwiftGodot/main/LICENSE)
 
-SwiftGodot provides Swift language bindings for the Godot 4.4 game
-engine using the new [GDExtension](https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/what_is_gdextension.html) system.   Support for older versions of Godot is available on branches.
+> **Fork note:** This fork contains changes to enable WASM compilation. See [WASM Support](#wasm-support) below.
 
-SwiftGodot can be used to either build an extension that can be added
-to an existing Godot project, where your code is providing services
-to the game engine, or it can be used as an API with SwiftGodotKit
-which embeds Godot as an application that is driven directly from
-Swift.
+SwiftGodot provides Swift language bindings for the Godot 4.4 game engine using the [GDExtension](https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/what_is_gdextension.html) system.
 
-Tutorials and Documentation:
-
+Documentation:
 * [Meet Swift Godot](https://migueldeicaza.github.io/SwiftGodotDocs/documentation/swiftgodot)
 * [SwiftGodot API Documentation](https://migueldeicaza.github.io/SwiftGodotDocs/documentation/swiftgodot/)
-* [Differences to GDScript](https://migueldeicaza.github.io/SwiftGodotDocs/documentation/swiftgodot/differences)
 * [Tutorials and walkthroughs](https://migueldeicaza.github.io/SwiftGodotDocs/tutorials/swiftgodot-tutorials/)
-* SwiftGodot port of [KenneyNL's StarterKit 3D Platformer](https://github.com/lorenalexm/Starter-Kit-3D-Platformer-Swift)
-* WIP: SwiftGodot port of C# Udemy tutorial: [GridBasedPuzzleGameTutorial](https://gitlab.com/dracks/gridbasedpuzzlegametutorial)
-* [SwiftGodot template project](https://github.com/elijah-semyonov/SwiftGodotTemplate) with a Editor plugin allowing recompiling with a single button tap
-* [Template to create your own bridge iOS/MacOS APIs to Godot](https://github.com/migueldeicaza/SwiftGodotAppleTemplate)
-* [Godot Apple Plugins](https://github.com/migueldeicaza/GodotApplePlugins) is a good example of wrapping iOS/MacOS APIs for use in Godot.
-
-Of interest to the community:
-* Running Godot in VisionPro using [GodotVision](https://github.com/kevinw/GodotVision)
-* Example Godot on Vision [GodotVisionExample](https://github.com/kevinw/GodotVisionExample)
-
-Driving Godot from Swift has the advantage that on MacOS you can
-debug your code from Xcode as well as the Godot code.
-
-https://user-images.githubusercontent.com/36863/232163186-dc7c0290-71db-49f2-b812-c775c55b8b77.mov
 
 # Why SwiftGodot?
 
-* No game stutters caused by GC, unlike C#.
-
-* Learn more: [Swift Godot: Fixing the Multi-million dollar
-  mistake](https://www.youtube.com/watch?v=tzt36EGKEZo)
-
-* Easy to surface Swift APIs to Godot, for example [GodotApplePlugins](https://github.com/migueldeicaza/GodotApplePlugins)
-
-# Tiny and Large
-
-When compiled, you can choose to use and reference a minimal SwiftGodot that
-only contains support for the core variant types, Object, ClassDB and RefCounted
-in the target `SwiftGodotRuntime`, or you can choose to use the traditional
-`SwiftGodot` target that contains the entire Godot API and is a superset of `SwiftGodotRuntime`.
-
-[Learn More about the
-rationale](https://github.com/migueldeicaza/SwiftGodot/discussions/741). 
+* No game stutters caused by GC, unlike C#
+* [Swift Godot: Fixing the Multi-million dollar mistake](https://www.youtube.com/watch?v=tzt36EGKEZo)
 
 # Quickly Getting Started
 
-The [SwiftGodotKick](https://github.com/EstevanBR/SwiftGodotKick) project can create a skeleton template
-GDExtension with Swift, as well as a standalone SwiftGodotKit project that can be used to quickly
-iterate on your game on MacOS.
+[SwiftGodotKick](https://github.com/EstevanBR/SwiftGodotKick) can create a skeleton GDExtension with Swift.
 
-[SwiftGodotCLI](https://github.com/johnsusek/SwiftGodotCLI) is a command-line tool that lets you build and run
-SwiftGodot code directly without any manual Godot project setup.
-
-# Supported Platforms
-
-Currently, SwiftGodot can be used in projects targeting the iOS, Linux, macOS,
-or Windows platforms. It may be possible to target additional platforms, but
-testing for other platforms has not been completed and stability cannot be
-verified at this time.
-
-# Consuming SwiftGodot
-
-There are two ways of consuming SwiftGodot, you can either reference
-this module in SwiftPM by using this address - and it will trigger a
-complete source code build for you, or to quickly iterate on MacOS,
-you can use a convenient binary in the peer
-https://github.com/migueldeicaza/SwiftGodotBinary
-
-Currently this requires Swift 5.9 or Xcode 15.
-
-# Working with this Repository
-
-You should be all set by referencing this as a package from SwiftPM
-but if you want to just work on the binding generator, you may want
-to open the Generator project and edit the `okList` variable
-to trim the build times.
-
-# Driving Godot From Swift
-
-To drive Godot from Swift, use the companion [`SwiftGodotKit`](https://github.com/migueldeicaza/SwiftGodotKit) 
-module which embeds Godot directly into your application, which 
-allows you to to launch the Godot runtime from your code.
-
+[SwiftGodotCLI](https://github.com/johnsusek/SwiftGodotCLI) lets you build and run SwiftGodot code without manual project setup.
 
 # Creating an Extension
 
-Creating an extension that can be used in Godot requires a few 
-components:
-
-* Your Swift code: this is where you bring the magic
-* A `.gdextension` file that describes where to find the requires
-  Swift library assets
-* Some Swift registration code and bootstrap code
-* Importing your extension into your project
-
 ## Your Swift Code
 
-Your Swift code will be compiled into a shared library that Godot
-will call.   To get started, the simplest thing to do is to 
-create a Swift Library Package that references the Swift Godot 
-package, like this:
+Create a Swift Library Package:
 
 ```swift
 // swift-tools-version: 5.9
@@ -135,14 +49,7 @@ let package = Package(
 )
 ```
 
-The above will compile all of SwiftGodot for you - alternatively, if
-you do not need access to the source, you can use the `.binaryTarget`
-feature of SwiftPM and reference an `.xcframework` that I have
-conveniently published on GitHub at
-https://github.com/migueldeicaza/SwiftGodotBinary
-
-The next step is to create your source file with the magic on it,
-here we declare a spinning cube:
+Create your game logic:
 
 ```swift
 import SwiftGodot
@@ -161,35 +68,7 @@ class SpinningCube: Node3D {
 }
 ```
 
-Additionally, you need to write some glue code for your 
-project to be loadable by Godot, you can do it like this:
-
-```swift
-/// We register our new type when we are told that the scene is being loaded
-func setupScene (level: ExtensionInitializationLevel) {
-    if level == .scene {
-        register(type: SpinningCube.self)
-    }
-}
-
-// Export our entry point to Godot:
-@_cdecl("swift_entry_point")
-public func swift_entry_point(
-    interfacePtr: OpaquePointer?,
-    libraryPtr: OpaquePointer?,
-    extensionPtr: OpaquePointer?) -> UInt8
-{
-    print ("SwiftGodot Extension loaded")
-    guard let interfacePtr, let libraryPtr, let extensionPtr else {
-        print ("Error: some parameters were not provided")
-        return 0
-    }
-    initializeSwiftModule(interfacePtr, libraryPtr, extensionPtr, initHook: setupScene, deInitHook: { x in })
-    return 1
-}
-```
-
-Alternatively, you can use the `#initSwiftExtension` macro:
+Register your extension using the macro:
 
 ```swift
 import SwiftGodot
@@ -197,41 +76,11 @@ import SwiftGodot
 #initSwiftExtension(cdecl: "swift_entry_point", types: [SpinningCube.self])
 ```
 
-Also, you can use `EntryPointGeneratorPlugin` that will scan the target source files and generate an entry point called `swift_entry_point` with `types` array mentioning all classes with `@Godot` macro attached. All you need is to add `plugins` entry in your `Package.swift` as below: 
-
-```swift
-let package = Package(
-    name: "MyFirstGame",
-    products: [
-        .library(name: "MyFirstGame", type: .dynamic, targets: ["MyFirstGame"]),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/migueldeicaza/SwiftGodot", branch: "main")
-    ],
-    targets: [
-        .target(
-            name: "MyFirstGame",
-            dependencies: ["SwiftGodot"],
-            // this plugin will generate a source file visible to compiler with '#initSwiftExtension(cdecl: "swift_entry_point", types: [SpinningCube.self])'
-            plugins: [
-                .plugin(name: "EntryPointGeneratorPlugin", package: "SwiftGodot")
-            ]
-        )
-    ],
-)
-```           
-
 ## Bundling Your Extension
 
-To make your extension available to Godot, you will need to 
-build the binaries for all of your target platforms, as well
-as creating a `.gdextension` file that lists this payload, 
-along with the entry point you declared above.
+Create a `.gdextension` file:
 
-You would create something like this in a file called
-`MyFirstGame.gdextension`:
-
-```yml
+```ini
 [configuration]
 entry_symbol = "swift_entry_point"
 compatibility_minimum = 4.2
@@ -239,51 +88,56 @@ compatibility_minimum = 4.2
 [libraries]
 macos.debug = "res://bin/MyFirstGame"
 macos.release = "res://bin/MyFirstGame"
-windows.debug.x86_32 = "res://bin/MyFirstGame"
-windows.release.x86_32 = "res://bin/MyFirstGame"
-windows.debug.x86_64 = "res://bin/MyFirstGame"
-windows.release.x86_64 = "res://bin/MyFirstGame"
 linux.debug.x86_64 = "res://bin/MyFirstGame"
 linux.release.x86_64 = "res://bin/MyFirstGame"
-linux.debug.arm64 = "res://bin/MyFirstGame"
-linux.release.arm64 = "res://bin/MyFirstGame"
-linux.debug.rv64 = "res://bin/MyFirstGame"
-linux.release.rv64 = "res://bin/MyFirstGame"
-android.debug.x86_64 = "res://bin/MyFirstGame"
-android.release.x86_64 = "res://bin/MyFirstGame"
-android.debug.arm64 = "res://bin/MyFirstGame"
-android.release.arm64 = "res://bin/MyFirstGame"
+windows.debug.x86_64 = "res://bin/MyFirstGame"
+windows.release.x86_64 = "res://bin/MyFirstGame"
 ```
-
-In the example above, the extension always expects the 
-platform specific payload to be called "MyFirstGame", 
-regardless of the platform.   If you want to distribute
-your extension to other users and have a single payload,
-you will need to manually set different names for those.
 
 ## Installing your Extension
 
-You need to copy both the new `.gdextension` file into 
-an existing project, along with the resources it references.
+Copy the `.gdextension` file and built libraries into your Godot project. Godot will load it automatically.
 
-Once it is there, Godot will load it for you.
+---
 
-## Using your Extension
+# WASM Support
 
-Once you create your extension and have loaded it into
-Godot, you can reference it from your code by using the
-"Add Child Node" command in Godot (Command-A on MacOS)
-and then finding it in the hierarchy.
+This fork includes changes to enable SwiftGodot compilation for WebAssembly.
 
-In our example above, it would appear under Node3D, as it
-is a Node3D subclass.
+## Changes
 
-## Community
+1. **WASILibc import** - C library detection for WASI platform
+2. **OptionSet Int64** - Fixes overflow on 32-bit WASM
+3. **Debug sentinel fix** - `0xdeaddead` → `0` (overflows 32-bit Int)
+4. **PropertyUsageFlags fix** - Match Int64 rawValue
 
-Join the community on [Discord](https://discord.gg/bHAsTYaCZM)
+## Setup
 
-The old community is still around, but it clears the history in [Slack](https://join.slack.com/t/swiftongodot/shared_invite/zt-2aqygohvb-stSRGEAN~c3awuMwtaqCAA).
+```bash
+# Swift 6.2.3 with WASM SDK
+curl -sL https://swiftlang.github.io/swiftly/swiftly-install.sh | bash
+swiftly install 6.2.3
+swift sdk install swift-6.2.3-RELEASE_wasm
 
-## Contributing
+# Emscripten 3.1.74
+git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
+cd ~/emsdk && ./emsdk install 3.1.74 && ./emsdk activate 3.1.74
+```
 
-Have a bug fix or feature request you'd like to see added? Consider contributing! Join our [community](#community) to get started.
+## Build
+
+```bash
+# Compile to WASM
+swift build --swift-sdk swift-6.2.3-RELEASE_wasm --target SwiftGodot
+
+# Link as Emscripten side module
+emcc -sSIDE_MODULE=2 -sEXPORTED_FUNCTIONS=_swift_entry_point \
+    -sALLOW_MEMORY_GROWTH=1 -sERROR_ON_UNDEFINED_SYMBOLS=0 -O2 \
+    .build/wasm32-unknown-wasip1/debug/*.build/*.o \
+    $SWIFT_WASM_SDK/swift.xctoolchain/usr/lib/swift_static/wasi/libswiftCore.a \
+    -o SwiftLogic.wasm
+```
+
+## Current Limitation
+
+The binary compiles but **doesn't run** in Godot's web export. Swift WASM SDK targets `wasm32-unknown-wasip1` (WASI), while Godot uses `wasm32-unknown-emscripten`. These have incompatible ABIs. See [issue #447](https://github.com/migueldeicaza/SwiftGodot/issues/447) for details.
