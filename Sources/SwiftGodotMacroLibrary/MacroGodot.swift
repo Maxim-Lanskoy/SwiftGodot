@@ -36,9 +36,19 @@ class GodotMacroProcessor {
     /// Tracks functions marked with @Rpc for generating rpcConfig calls
     var rpcConfigurations: [RpcConfiguration] = []
 
+    /// Whether the class already has an _enterTree() override
+    var hasExistingEnterTree: Bool = false
+
     init(classDecl: ClassDeclSyntax) {
         self.classDecl = classDecl
         className = classDecl.name.text
+
+        // Check if class already has an _enterTree() override
+        hasExistingEnterTree = classDecl.memberBlock.members.contains { member in
+            guard let funcDecl = member.decl.as(FunctionDeclSyntax.self) else { return false }
+            return funcDecl.name.text == "_enterTree" &&
+                   funcDecl.modifiers.contains { $0.name.text == "override" }
+        }
     }
     
     func checkNameCollision(_ name: String, for decl: DeclSyntax) throws {
@@ -213,42 +223,61 @@ class GodotMacroProcessor {
         ))
     }
 
-    /// Generates the _enterTree() override if there are any @Rpc functions.
-    /// RPC configuration must be done early in the node lifecycle, before _ready().
+    /// Generates RPC configuration code for methods marked with @Rpc.
+    /// - If the class doesn't have _enterTree(), generates both _enterTree() and _configureRpc()
+    /// - If the class already has _enterTree(), generates only _configureRpc() which must be called manually
     /// FIX: Changed from non-existent _before_ready() to standard Godot _enterTree()
     /// FIX: Use VariantDictionary instead of invalid dictionary literal cast
     func generateEnterTreeOverride() -> String? {
         guard !rpcConfigurations.isEmpty else { return nil }
 
-        var result = """
-        /// Configures RPC for methods marked with `@Rpc`. Called automatically from `_enterTree()`.
-        /// If you override `_enterTree()` in your class, make sure to call `super._enterTree()`.
-        override open func _enterTree() {
-            super._enterTree()
-            _configureRpc()
+        var result = ""
+
+        // Only generate _enterTree() if the class doesn't already have one
+        if !hasExistingEnterTree {
+            result += """
+            /// Configures RPC for methods marked with `@Rpc`. Called automatically from `_enterTree()`.
+            override open func _enterTree() {
+                super._enterTree()
+                _configureRpc()
+            }
+
+
+            """
         }
 
-        /// Internal method to configure RPC settings. Called automatically.
-        private func _configureRpc() {
-        """
+        // Always generate _configureRpc() - either called automatically or manually
+        if hasExistingEnterTree {
+            result += """
+            /// Configures RPC for methods marked with `@Rpc`.
+            /// IMPORTANT: Your class has a custom `_enterTree()` override.
+            /// You must call `_configureRpc()` manually in your `_enterTree()` method.
+            func _configureRpc() {
+            """
+        } else {
+            result += """
+            /// Internal method to configure RPC settings. Called automatically from `_enterTree()`.
+            private func _configureRpc() {
+            """
+        }
 
         for config in rpcConfigurations {
             result += """
 
-            do {
-                let rpcDict = VariantDictionary()
-                rpcDict["rpc_mode"] = Variant(MultiplayerAPI.RPCMode\(config.mode).rawValue)
-                rpcDict["call_local"] = Variant(\(config.callLocal))
-                rpcDict["transfer_mode"] = Variant(MultiplayerPeer.TransferMode\(config.transferMode).rawValue)
-                rpcDict["channel"] = Variant(\(config.transferChannel))
-                rpcConfig(method: StringName("\(config.godotMethodName)"), config: Variant(rpcDict))
-            }
+                do {
+                    let rpcDict = VariantDictionary()
+                    rpcDict["rpc_mode"] = Variant(MultiplayerAPI.RPCMode\(config.mode).rawValue)
+                    rpcDict["call_local"] = Variant(\(config.callLocal))
+                    rpcDict["transfer_mode"] = Variant(MultiplayerPeer.TransferMode\(config.transferMode).rawValue)
+                    rpcDict["channel"] = Variant(\(config.transferChannel))
+                    rpcConfig(method: StringName("\(config.godotMethodName)"), config: Variant(rpcDict))
+                }
             """
         }
 
         result += """
 
-        }
+            }
         """
         return result
     }
