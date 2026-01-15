@@ -62,8 +62,8 @@ class GodotMacroProcessor {
         
         classInitializerPrinter("""
         SwiftGodotRuntime._registerSignal(
-            \(className).\(signalName.swiftName).name, 
-            in: className, 
+            \(className).\(signalName.swiftName).name,
+            in: className,
             arguments: \(className).\(signalName.swiftName).arguments
         )
         """)
@@ -133,9 +133,9 @@ class GodotMacroProcessor {
         p("SwiftGodotRuntime._registerMethod", .parentheses) {
             p("""
             className: className,
-            name: "\(godotFuncName)", 
-            flags: \(flags), 
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(\(returnTypename).self),    
+            name: "\(godotFuncName)",
+            flags: \(flags),
+            returnValue: SwiftGodotRuntime._returnValuePropInfo(\(returnTypename).self),
             """)
             p("arguments: ", .square, afterBlock: ",") {
                 p(arguments)
@@ -144,7 +144,7 @@ class GodotMacroProcessor {
             if generatePtrCall {
                 p("""
                 ptrFunction: { udata, classInstance, argsPtr, retValue in
-                    guard let argsPtr else { GD.print("Godot is not passing the arguments"); return } 
+                    guard let argsPtr else { GD.print("Godot is not passing the arguments"); return }
                     \(className)._pproxy_\(funcName) (classInstance, RawArguments(args: argsPtr), retValue)
                 }
                 
@@ -156,12 +156,26 @@ class GodotMacroProcessor {
     }
 
     /// Processes a function marked with @Rpc to extract RPC configuration
-    func processRpcFunction(_ funcDecl: FunctionDeclSyntax) {
+    /// FIX: Now matches the method name that @Callable uses (camelCase by default)
+    func processRpcFunction(_ funcDecl: FunctionDeclSyntax) throws {
         guard funcDecl.hasRpcAttribute else { return }
         guard let rpcAttribute = funcDecl.attributes.attribute(named: "Rpc") else { return }
 
         let funcName = funcDecl.name.text
-        let godotFuncName = funcName.camelCaseToSnakeCase()
+
+        // IMPORTANT: Use the same method name that @Callable uses
+        // @Callable defaults to camelCase unless autoSnakeCase: true is specified
+        let godotFuncName: String
+        if let callableAttribute = funcDecl.attributes.attribute(named: "Callable") {
+            if try callableAttribute.callableAutoSnakeCaseArgument {
+                godotFuncName = funcName.camelCaseToSnakeCase()
+            } else {
+                godotFuncName = funcName  // Match @Callable's default (camelCase)
+            }
+        } else {
+            // No @Callable attribute - use camelCase as default to match SwiftGodot conventions
+            godotFuncName = funcName
+        }
 
         // Parse @Rpc arguments with defaults
         var mode = ".authority"
@@ -199,34 +213,43 @@ class GodotMacroProcessor {
         ))
     }
 
-    /// Generates the _before_ready() override if there are any @Rpc functions.
-    /// This method is called automatically by the generated Node._ready() proxy.
-    func generateBeforeReadyOverride() -> String? {
+    /// Generates the _enterTree() override if there are any @Rpc functions.
+    /// RPC configuration must be done early in the node lifecycle, before _ready().
+    /// FIX: Changed from non-existent _before_ready() to standard Godot _enterTree()
+    /// FIX: Use VariantDictionary instead of invalid dictionary literal cast
+    func generateEnterTreeOverride() -> String? {
         guard !rpcConfigurations.isEmpty else { return nil }
 
         var result = """
-        /// Called automatically before `_ready()`. Configures RPC for methods marked with `@Rpc`.
-        override open func _before_ready() {
-            super._before_ready()
+        /// Configures RPC for methods marked with `@Rpc`. Called automatically from `_enterTree()`.
+        /// If you override `_enterTree()` in your class, make sure to call `super._enterTree()`.
+        override open func _enterTree() {
+            super._enterTree()
+            _configureRpc()
+        }
 
+        /// Internal method to configure RPC settings. Called automatically.
+        private func _configureRpc() {
         """
 
         for config in rpcConfigurations {
             result += """
-                rpcConfig(
-                    method: StringName("\(config.godotMethodName)"),
-                    config: Variant([
-                        "rpc_mode": Variant(MultiplayerAPI.RPCMode\(config.mode).rawValue),
-                        "call_local": Variant(\(config.callLocal)),
-                        "transfer_mode": Variant(MultiplayerPeer.TransferMode\(config.transferMode).rawValue),
-                        "channel": Variant(\(config.transferChannel))
-                    ] as GDictionary)
-                )
 
+            do {
+                let rpcDict = VariantDictionary()
+                rpcDict["rpc_mode"] = Variant(MultiplayerAPI.RPCMode\(config.mode).rawValue)
+                rpcDict["call_local"] = Variant(\(config.callLocal))
+                rpcDict["transfer_mode"] = Variant(MultiplayerPeer.TransferMode\(config.transferMode).rawValue)
+                rpcDict["channel"] = Variant(\(config.transferChannel))
+                rpcConfig(method: StringName("\(config.godotMethodName)"), config: Variant(rpcDict))
+            }
             """
         }
 
-        result += "    }"
+        result += """
+
+        }
+        """
         return result
     }
 
@@ -402,7 +425,7 @@ class GodotMacroProcessor {
                     processExportSubgroup(name: name, prefix: previousSubgroupPrefix ?? "")
                 } else if let funcDecl = FunctionDeclSyntax(decl) {
                     try processFunction (funcDecl)
-                    processRpcFunction(funcDecl)
+                    try processRpcFunction(funcDecl)
                 } else if let varDecl = VariableDeclSyntax(decl) {
                     try processVariable(
                         varDecl,
@@ -551,9 +574,9 @@ public struct GodotMacro: MemberMacro {
                 decls.append (DeclSyntax(extendedGraphemeClusterLiteral: implementedOverridesDecl))
             }
 
-            // Generate _before_ready() override if there are any @Rpc functions
-            if let beforeReadyOverride = processor.generateBeforeReadyOverride() {
-                decls.append(DeclSyntax(stringLiteral: beforeReadyOverride))
+            // Generate _enterTree() override if there are any @Rpc functions
+            if let enterTreeOverride = processor.generateEnterTreeOverride() {
+                decls.append(DeclSyntax(stringLiteral: enterTreeOverride))
             }
 
             return decls
