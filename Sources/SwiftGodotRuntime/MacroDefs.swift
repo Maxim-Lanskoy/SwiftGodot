@@ -17,8 +17,9 @@
 /// - Parameter behavior: using `.tool` value makes the overridden methods like `_ready` or
 /// `_process` run in editor, making the class work like `@tool` annotated script in GDScript
 ///
+/// - Note: The `_enterTree` and `_configureRpc` names are generated when using `@Rpc` macro on methods.
 @attached(member,
-          names: named (_initializeClass), named(classInitializer), named (implementedOverrides))
+          names: named (_initializeClass), named(classInitializer), named (implementedOverrides), named(_enterTree), named(_configureRpc))
 public macro Godot(_ behavior: ClassBehavior = .gameplay) = #externalMacro(module: "SwiftGodotMacroLibrary", type: "GodotMacro")
 
 public enum ClassBehavior: Int {
